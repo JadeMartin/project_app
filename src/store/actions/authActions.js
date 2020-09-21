@@ -42,3 +42,18 @@ export const signUp = (newUser) => {
         })
     }
 }
+
+
+export const updateUser = (id, user) => {
+    return (dispatch, getState, {getFirestore}) => {
+        const firestore = getFirestore();
+        user.initials = user.firstName[0] + user.lastName[0];
+        firestore.collection('users').doc(id).update({
+            ...user
+        }).then(() => {
+            dispatch({type: 'UPDATE_USER', user});
+        }).catch((err) => {
+            dispatch({type: 'UPDATE_USER_ERROR', err});
+        })
+    }
+}

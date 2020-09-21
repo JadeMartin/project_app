@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Notifications from './Notifications';
 import ProjectList from '../projects/ProjectList';
 import { connect } from 'react-redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -9,9 +8,9 @@ import { deleteProject }  from '../../store/actions/projectActions';
 
 
 
-class Dashboard extends Component {
+class UserProjects extends Component {
     render() {
-        const { projects, auth, notifications } = this.props;
+        const { projects, auth } = this.props;
         if(!auth.uid) return <Redirect to='/signin'/>
 
         return (
@@ -20,23 +19,18 @@ class Dashboard extends Component {
                     <div className="col s12 m6">
                         <ProjectList projects={projects} deleteProject={this.props.deleteProject} auth={auth}/>
                     </div>
-                    <div className="col s12 m5 offset-m1">
-                        <Notifications notifications={notifications}/>
-                    </div>
                 </div>
             </div>
         )
     }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state, ownProps) => {
     return {
         projects: state.firestore.ordered.projects,
         auth: state.firebase.auth,
-        notifications: state.firestore.ordered.notifications
     }
 }
-
 
 const mapDispatchToProps = (dispatch) => {
     return {
@@ -46,8 +40,5 @@ const mapDispatchToProps = (dispatch) => {
 
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
-    firestoreConnect([
-        {collection: 'projects', orderBy: ['createdAt', 'desc']},
-        {collection: 'notifications', limit: 3, orderBy: ['time', 'desc']}
-    ])
-)(Dashboard)
+    firestoreConnect((props) => {return ([{collection: 'projects', where:[['authorId', '==', props.match.params.userId]]}])}))
+    (UserProjects)

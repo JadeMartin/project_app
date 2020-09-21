@@ -27,13 +27,50 @@ exports.projectCreated = functions.firestore.document('projects/{projectId}').on
     return createNotification(notification);
 })
 
-exports.userJoined = functions.auth.user().onCreate(user => {
-    return createNotification(admin.firestore().collection('users').doc(user.uid).get().then( doc => {
+exports.userJoined = functions.auth.user()
+  .onCreate(user => {
+    
+    return admin.firestore().collection('users')
+      .doc(user.uid).get().then(doc => {
+
         const newUser = doc.data();
         const notification = {
-            content: 'Joined the website',
-            user: `${newUser.firstName} ${newUser.lastName}`,
-            time: admin.firestore.FieldValue.serverTimestamp()
-        }
-    }));
+          content: 'Joined the website',
+          user: `${newUser.firstName} ${newUser.lastName}`,
+          time: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        return createNotification(notification);
+
+      });
+});
+
+exports.projectDeleted = functions.firestore.document('projects/{projectId}').onDelete( snap => {
+    const project = snap.data();
+    const notification = {
+        content: "has deleted project " + `${project.title}`,
+        user: `${project.authorFirstName} ${project.authorLastName}`,
+        time: admin.firestore.FieldValue.serverTimestamp()
+    }
+    return createNotification(notification);
+})
+
+exports.projectEdited = functions.firestore.document('projects/{projectId}').onUpdate( change => {
+    const project = change.before.data();
+    const notification = {
+        content: "has updated project " + `${project.title}`,
+        user: `${project.authorFirstName} ${project.authorLastName}`,
+        time: admin.firestore.FieldValue.serverTimestamp()
+    }
+    return createNotification(notification);
+})
+
+exports.userEdited = functions.firestore.document('users/{userId}').onUpdate( change => {
+    const user = change.before.data();
+    const notification = {
+        content: 'has been updated.',
+        user: `${user.firstName} ${user.lastName}`,
+        time: admin.firestore.FieldValue.serverTimestamp()
+    }
+    return createNotification(notification);
 })
